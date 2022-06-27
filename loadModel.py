@@ -6,6 +6,7 @@ import torch.nn as nn
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import math
 import torchvision
 
@@ -46,6 +47,10 @@ model.load_state_dict(torch.load(FILE)["state_dict"])
 
 model.eval()
 
+img = cv2.imread("GT_SRGB_010.PNG", cv2.IMREAD_UNCHANGED)
+
+print("Original Dimensions: ", img.shape)
+
 # Test
 
 clean = torch.from_numpy(np.float32(load_img("GT_SRGB_010.PNG")))
@@ -55,12 +60,14 @@ noisy = noisy.permute(2, 0, 1)
 noisy = torchvision.transforms.Resize(256)(noisy)
 clean = torchvision.transforms.Resize(256)(clean)
 
+print("Modified Dimensions: ", noisy.shape)
+
 plt.imshow(clean.permute(1, 2, 0))
 plt.figure()
 plt.imshow(noisy.permute(1, 2, 0))
 
 torch.cuda.empty_cache()
-# model.cuda()
+model.cuda()
 model.eval()
 
 noisy = noisy.cuda()
@@ -75,37 +82,9 @@ plt.figure()
 restored = restored.squeeze(0).detach()
 plt.imshow(restored.cpu().permute(1, 2, 0))
 
-# for param in model.parameters():
-#     print(param)
+restored *= 255
 
-
-# loaded_model = Uformer(img_size=128, in_chans=3,
-#                  embed_dim=16, depths=[2, 2, 2, 2, 2, 2, 2, 2, 2], num_heads=[1, 2, 4, 8, 16, 16, 8, 4, 2],
-#                  win_size=8, mlp_ratio=4., qkv_bias=True, qk_scale=None,
-#                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
-#                  norm_layer=nn.LayerNorm, patch_norm=True,
-#                  use_checkpoint=False, token_projection='linear', token_mlp='', se_layer=False,
-#                  dowsample=Downsample, upsample=Upsample)
-
-# FILE = "uformer16_denoising_sidd.pth"
-
-# loaded_checkpoint = torch.load(FILE)
-# print(loaded_checkpoint)
-
-# epoch = loaded_checkpoint["epoch"]
-# model = Uformer(embed_dim=16)
-# model.load_state_dict(loaded_checkpoint["state_dict"])
-
-# model.eval()
-
-# for param in model.parameters():
-#     print(param)
-
-
-# loaded_model.load_state_dict(loaded_checkpoint)
-
-# loaded_model = torch.load(FILE)
-# loaded_model.eval()
-
-# for param in loaded_model.parameters():
-#     print(param)
+cv2.imwrite(
+    "./RESTORED_SRGB_010.png",
+    restored.squeeze(0).detach().cpu().permute(1, 2, 0).numpy(),
+)
