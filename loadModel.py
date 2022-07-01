@@ -11,8 +11,15 @@ import math
 import torchvision
 
 # Utils
-def load_img(filepath):
+def load_img(filepath, scale_percent):
     img = cv2.cvtColor(cv2.imread(filepath), cv2.COLOR_BGR2RGB)
+
+    width = int(img.shape[1] * scale_percent / 100)
+    height = int(img.shape[0] * scale_percent / 100)
+    dim = (width, height)
+    # resize image
+    img = cv2.resize(img, dim, interpolation=cv2.INTER_AREA)
+
     img = img.astype(np.float32)
     img = img / 255.0
     return img
@@ -38,6 +45,8 @@ def expand2square(timg, factor=16.0):
     return img, mask
 
 
+##########################################################################################
+
 model = Uformer(embed_dim=16, token_mlp="leff")
 model = torch.nn.DataParallel(model)
 
@@ -52,15 +61,17 @@ img = cv2.imread("GT_SRGB_010.PNG", cv2.IMREAD_UNCHANGED)
 print("Original Dimensions: ", img.shape)
 
 # Test
+scale_percent = 95  # percent of original size
+clean = torch.from_numpy(np.float32(load_img("GT_SRGB_010.PNG", scale_percent)))
+noisy = torch.from_numpy(np.float32(load_img("NOISY_SRGB_010.PNG", scale_percent)))
 
-clean = torch.from_numpy(np.float32(load_img("GT_SRGB_010.PNG")))
-noisy = torch.from_numpy(np.float32(load_img("NOISY_SRGB_010.PNG")))
+print("scale %: ", scale_percent)
+print("Modified Dimensions: ", noisy.shape)
+
 clean = clean.permute(2, 0, 1)
 noisy = noisy.permute(2, 0, 1)
-noisy = torchvision.transforms.Resize(256)(noisy)
-clean = torchvision.transforms.Resize(256)(clean)
-
-print("Modified Dimensions: ", noisy.shape)
+# noisy = torchvision.transforms.Resize(256)(noisy)
+# clean = torchvision.transforms.Resize(256)(clean)
 
 plt.imshow(clean.permute(1, 2, 0))
 plt.figure()
@@ -72,10 +83,10 @@ model.eval()
 
 noisy = noisy.cuda()
 noisy = noisy.unsqueeze(0)
-noisy, mask = expand2square(noisy, factor=128)
+noisy, mask = expand2square(noisy, factor=1)
 plt.figure()
 plt.imshow(noisy.cpu().squeeze(0).permute(1, 2, 0))
-print(noisy.shape)
+print("Square shape: ", noisy.shape)
 torch.cuda.empty_cache()
 restored = model(noisy)
 plt.figure()
