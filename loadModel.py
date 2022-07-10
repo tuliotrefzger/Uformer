@@ -111,8 +111,8 @@ noisy = noisy.permute(2, 0, 1)
 # noisy = torchvision.transforms.Resize(256)(noisy)
 # clean = torchvision.transforms.Resize(256)(clean)
 
-# noisy = torchvision.transforms.Resize(1000)(noisy)
-# clean = torchvision.transforms.Resize(1000)(clean)
+noisy = torchvision.transforms.Resize(1000)(noisy)
+clean = torchvision.transforms.Resize(1000)(clean)
 
 _, original_height, original_width = clean.shape
 # print("height: ", original_height)
@@ -133,7 +133,7 @@ noisy, mask = expand2square(noisy, factor=128)
 torch.cuda.empty_cache()
 restored = model(noisy)
 cv2.imwrite(
-    "./SQUARED_SRGB_010.png",
+    "SIDD_Small_sRGB_Only/Data/0001_001_S6_00100_00060_3200_L/SQUARED_SRGB_010.png",
     restored.squeeze(0).detach().cpu().permute(1, 2, 0).numpy() * 255,
 )
 # restored = restored.squeeze(0).detach().cpu().permute(1,2,0).numpy()
