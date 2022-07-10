@@ -1,6 +1,3 @@
-from model import UNet, Uformer, Uformer_Cross, Uformer_CatCross, Downsample, Upsample
-from collections import OrderedDict
-
 import torch
 import torch.nn as nn
 import cv2
@@ -9,6 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import math
 import torchvision
+
+from model import UNet, Uformer, Uformer_Cross, Uformer_CatCross, Downsample, Upsample
+from collections import OrderedDict
+
 
 # Utils
 def load_img(filepath):
@@ -82,8 +83,20 @@ FILE = "uformer16_denoising_sidd.pth"
 
 model.load_state_dict(torch.load(FILE)["state_dict"])
 
-clean = torch.from_numpy(np.float32(load_img("GT_SRGB_010.PNG")))
-noisy = torch.from_numpy(np.float32(load_img("NOISY_SRGB_010.PNG")))
+clean = torch.from_numpy(
+    np.float32(
+        load_img(
+            "SIDD_Small_sRGB_Only/Data/0001_001_S6_00100_00060_3200_L/GT_SRGB_010.PNG"
+        )
+    )
+)
+noisy = torch.from_numpy(
+    np.float32(
+        load_img(
+            "SIDD_Small_sRGB_Only/Data/0001_001_S6_00100_00060_3200_L/NOISY_SRGB_010.PNG"
+        )
+    )
+)
 
 original_height, original_width, _ = clean.shape
 # print("original height: ", original_height)
@@ -130,7 +143,7 @@ restored = return2originalSize(restored, original_height, original_width)
 restored *= 255
 
 cv2.imwrite(
-    "./RESTORED_SRGB_010.png",
+    "SIDD_Small_sRGB_Only/Data/0001_001_S6_00100_00060_3200_L/RESTORED_SRGB_010.png",
     restored.squeeze(0).detach().cpu().permute(1, 2, 0).numpy(),
 )
 print("END")
