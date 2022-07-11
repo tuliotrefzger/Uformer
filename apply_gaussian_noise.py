@@ -61,7 +61,8 @@ for directory_path, subdirectories, files in os.walk(directory):
             file = directory_path + "/" + file
             img = torch.from_numpy(np.float32(load_img(file)))
             print("image shape:", img.shape)
-
+            degraded_file = generate_ruido_gaussiano(img=img, deg_level=2)
+            print("degraded image shape:", degraded_file.shape)
 print("END")
 
 
